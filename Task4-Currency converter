@@ -1,0 +1,94 @@
+//The dependencies
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com</groupId>
+    <artifactId>CurrencyConverter</artifactId>
+    <version>1.0-SNAPSHOT</version>
+
+    <dependencies>
+        <!-- OkHttp Dependency -->
+        <dependency>
+            <groupId>com.squareup.okhttp3</groupId>
+            <artifactId>okhttp</artifactId>
+            <version>5.0.0</version> <!-- Use the latest version available -->
+        </dependency>
+
+        <!-- JSON Library (e.g., org.json) -->
+        <dependency>
+            <groupId>org.json</groupId>
+            <artifactId>json</artifactId>
+            <version>20210307</version> <!-- Use the version that matches your JSON library -->
+        </dependency>
+    </dependencies>
+</project> 
+ /**
+ * 
+ */
+/**
+ * @author karth
+ *
+ */
+//The Currency convertorclass
+package com;
+
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
+import org.json.JSONObject; // Make sure you import the correct JSON library.
+
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.util.Scanner;
+
+public class CurrencyConverter {
+
+    public static void main(String[] args) throws IOException {
+
+        Scanner scanner = new Scanner(System.in);
+
+        System.out.println("Type currency to convert from");
+        String convertFrom = scanner.nextLine();
+
+        System.out.println("Type currency to convert to");
+        String convertTo = scanner.nextLine();
+
+        System.out.println("Type quantity to convert");
+        BigDecimal quantity = scanner.nextBigDecimal();
+
+        String urlString = "https://api.exchangerate.host/latest?base=" + convertFrom.toUpperCase();
+
+        OkHttpClient client = new OkHttpClient();
+
+        Request request = new Request.Builder()
+                .url(urlString)
+                .get()
+                .build();
+
+        Response response = client.newCall(request).execute();
+
+        if (response.isSuccessful()) {
+            String stringResponse = response.body().string();
+            JSONObject jsonObject = new JSONObject(stringResponse);
+
+            // Check if the "rates" object exists in the response.
+            if (jsonObject.has("rates")) {
+                JSONObject ratesObject = jsonObject.getJSONObject("rates");
+
+                if (ratesObject.has(convertTo.toUpperCase())) {
+                    BigDecimal rate = ratesObject.getBigDecimal(convertTo.toUpperCase());
+                    BigDecimal result = rate.multiply(quantity);
+                    System.out.println("Converted amount: " + result);
+                } else {
+                    System.out.println("Invalid currency to convert to.");
+                }
+            } else {
+                System.out.println("Invalid currency to convert from.");
+            }
+        } else {
+            System.out.println("API request failed with response code: " + response.code());
+        }
+    }
+} 
